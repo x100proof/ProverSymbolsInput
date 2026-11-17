@@ -21,5 +21,5 @@ q.addEventListener('input',f);f();
 // Chrome --app windows reuse their last saved size, ignoring --window-size. So the first time only,
 // size ourselves to 70% x 80% of the screen's free area (clamped to 1000-1400 x 640-1000), centred;
 // after that Chrome's own memory keeps whatever size the user picks. No-op in a normal tab.
-(()=>{const K='leanShortcutsSized';try{if(localStorage.getItem(K))return;localStorage.setItem(K,'1')}catch(e){return}const s=screen,W=s.availWidth,H=s.availHeight,w=Math.min(W,Math.max(1000,Math.min(1400,W*.7))),h=Math.min(H,Math.max(640,Math.min(1000,H*.8)));try{resizeTo(w,h);moveTo((s.availLeft||0)+(W-w)/2,(s.availTop||0)+(H-h)/2)}catch(e){}})();
+(()=>{const K='symbolShortcutsSized';try{if(localStorage.getItem(K))return;localStorage.setItem(K,'1')}catch(e){return}const s=screen,W=s.availWidth,H=s.availHeight,w=Math.min(W,Math.max(1000,Math.min(1400,W*.7))),h=Math.min(H,Math.max(640,Math.min(1000,H*.8)));try{resizeTo(w,h);moveTo((s.availLeft||0)+(W-w)/2,(s.availTop||0)+(H-h)/2)}catch(e){}})();
 </script></body></html>

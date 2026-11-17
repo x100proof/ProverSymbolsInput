@@ -27,8 +27,10 @@ IM_APP="/Library/Input Methods/Math Symbols Input.app"
 PKG_URL=https://github.com/knrafto/MathSymbolsInput/releases/latest/download/MathSymbolsInput.pkg
 LEAN_URL=https://raw.githubusercontent.com/leanprover/vscode-lean4/master/lean4-unicode-input/src/abbreviations.json
 AGDA_URL=https://raw.githubusercontent.com/banacorn/agda-mode-vscode/master/asset/keymap.js
-SUPPORT="$HOME/Library/Application Support/LeanSymbolsInput"
-SERVICE_NAME="Open Lean Shortcuts"
+SUPPORT="$HOME/Library/Application Support/ProverSymbolsInput"
+SERVICE_NAME="Open Symbol Shortcuts"
+OLD_SUPPORT="$HOME/Library/Application Support/LeanSymbolsInput"   # before the rename
+OLD_SERVICE_NAME="Open Lean Shortcuts"
 HOTKEY='^~@l'   # ^ Ctrl, ~ Option, @ Cmd
 
 # 1. Input method must already be installed
@@ -39,6 +41,10 @@ if [ ! -d "$IM_APP" ]; then
   exit 1
 fi
 
+# Carry backups and fetched tables over from the pre-rename folder.
+if [ -d "$OLD_SUPPORT" ] && [ ! -e "$SUPPORT" ]; then
+  mv "$OLD_SUPPORT" "$SUPPORT" && echo "==> Moved $OLD_SUPPORT to $SUPPORT"
+fi
 mkdir -p "$SUPPORT"
 if [ "$LANG_NAME" = Agda ]; then
   ABBREV="$HERE/abbreviations-agda.json"; URL="$AGDA_URL"; FETCHED="$SUPPORT/agda-keymap.js"
@@ -67,6 +73,15 @@ echo "==> Installing $LANG_NAME commands"
 # 3. Quick Action + hotkey
 echo "==> Installing \"$SERVICE_NAME\" Quick Action on Ctrl+Option+Cmd+L"
 mkdir -p "$HOME/Library/Services"
+if [ -d "$HOME/Library/Services/$OLD_SERVICE_NAME.workflow" ]; then
+  echo "==> Removing old \"$OLD_SERVICE_NAME\" Quick Action"
+  rm -rf "$HOME/Library/Services/$OLD_SERVICE_NAME.workflow"
+  defaults export pbs - | /usr/bin/python3 -I -c '
+import plistlib, sys
+p = plistlib.loads(sys.stdin.buffer.read())
+p.get("NSServicesStatus", {}).pop("(null) - " + sys.argv[1] + " - runWorkflowAsService", None)
+sys.stdout.buffer.write(plistlib.dumps(p))' "$OLD_SERVICE_NAME" | defaults import pbs -
+fi
 ditto "$HERE/$SERVICE_NAME.workflow" "$HOME/Library/Services/$SERVICE_NAME.workflow"
 defaults write pbs NSServicesStatus -dict-add \
   "\"(null) - $SERVICE_NAME - runWorkflowAsService\"" \

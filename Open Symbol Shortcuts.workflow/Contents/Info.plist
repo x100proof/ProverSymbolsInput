@@ -12,7 +12,7 @@
 			<key>NSMenuItem</key>
 			<dict>
 				<key>default</key>
-				<string>Open Lean Shortcuts</string>
+				<string>Open Symbol Shortcuts</string>
 			</dict>
 			<key>NSMessage</key>
 			<string>runWorkflowAsService</string>
