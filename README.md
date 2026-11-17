@@ -1,12 +1,23 @@
 # ProverSymbolsInput
 
-Type [Lean 4](https://lean-lang.org) or [Agda](https://agda.readthedocs.io) unicode abbreviations (`\to` → `→`, `\R` → `ℝ`, `\<>` → `⟨⟩`)
-in any macOS app, with a searchable cheat sheet on **⌃⌥⌘L**.
+Type unicode abbreviations from the proof assistant you use, either [Lean 4](https://lean-lang.org)
+or [Agda](https://agda.readthedocs.io), in any macOS app, with a searchable cheat sheet on
+**⌃⌥⌘L**:
+
+| Symbol | Lean 4  | Agda    |
+|--------|---------|---------|
+| →      | `\to`   | `\to`   |
+| ∀      | `\all`  | `\all`  |
+| ≡      | `\==`   | `\==`   |
+| ℝ      | `\R`    | `\bR`   |
+| ℕ      | `\N`    | `\bN`   |
+
+You choose one proof assistant's table when you install, and can switch at any time.
 
 This repo works in conjunction with
 [Math Symbols Input](https://github.com/knrafto/MathSymbolsInput), a macOS input method that turns
 `\commands` into unicode characters in whichever app has keyboard focus. Math Symbols Input does
-the typing; this repo loads Lean's or Agda's abbreviation table into it and adds the cheat sheet.
+the typing; this repo loads the Lean 4 or Agda abbreviation table into it and adds the cheat sheet.
 
 ![The searchable shortcuts cheat sheet](cheatsheet.png)
 
@@ -24,9 +35,9 @@ the typing; this repo loads Lean's or Agda's abbreviation table into it and adds
 
    Add `--update` to fetch the latest table first.
 
-This adds every Lean (or Agda) abbreviation to Math Symbols Input's **Custom Commands** (your own
-are kept; the table wins on a name clash). Switching between `--agda` and Lean removes the other
-table's commands. Where Agda offers several symbols for one key, the first (Agda's default) is used.
+This adds every Lean 4 or Agda abbreviation to Math Symbols Input's **Custom Commands** (your own
+are kept; the table wins on a name clash). Running it with the other option switches tables and
+removes the previous table's commands. Where Agda offers several symbols for one key, the first (Agda's default) is used.
 It also installs the **Open Symbol Shortcuts** Quick Action (the cheat sheet, for either table).
 Re-run it to refresh the cheat sheet.
 
