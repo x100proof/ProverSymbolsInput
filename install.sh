@@ -2,7 +2,8 @@
 # Add every Lean 4 (or Agda) abbreviation to Math Symbols Input as a custom
 # command, and bind Ctrl+Option+Cmd+L to a searchable shortcut viewer.
 #
-#   ./install.sh            Lean 4: use the bundled abbreviations.json
+#   ./install.sh            Lean 4 (the default): use the bundled abbreviations.json
+#   ./install.sh --lean4    the same, explicitly
 #   ./install.sh --agda     Agda: use the bundled abbreviations-agda.json
 #   --update                fetch the latest table first (vscode-lean4 / agda-mode-vscode)
 #
@@ -15,9 +16,9 @@ UPDATE=
 for arg in "$@"; do
   case "$arg" in
     --agda) LANG_NAME=Agda ;;
-    --lean) LANG_NAME=Lean ;;
+    --lean4|--lean) LANG_NAME=Lean ;;
     --update) UPDATE=1 ;;
-    *) echo "usage: $0 [--agda] [--update]" >&2; exit 2 ;;
+    *) echo "usage: $0 [--lean4 | --agda] [--update]" >&2; exit 2 ;;
   esac
 done
 

@@ -29,7 +29,7 @@ the typing; this repo loads the Lean 4 or Agda abbreviation table into it and ad
 2. Run:
 
    ```sh
-   ./install.sh            # Lean 4
+   ./install.sh            # Lean 4 (the default; same as --lean4)
    ./install.sh --agda     # Agda
    ```
 
