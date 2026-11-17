@@ -18,17 +18,24 @@ the typing; this repo loads Lean's abbreviation table into it and adds the cheat
 2. Run:
 
    ```sh
-   ./install.sh            # or: ./install.sh --update  (fetch the latest Lean table)
+   ./install.sh            # Lean 4
+   ./install.sh --agda     # Agda
    ```
 
-This adds every Lean abbreviation to Math Symbols Input's **Custom Commands** (existing ones are
-kept; Lean wins on a name clash) and installs the **Open Lean Shortcuts** Quick Action. Re-run it
-to refresh the cheat sheet.
+   Add `--update` to fetch the latest table first.
+
+This adds every Lean (or Agda) abbreviation to Math Symbols Input's **Custom Commands** (your own
+are kept; the table wins on a name clash). Switching between `--agda` and Lean removes the other
+table's commands. Where Agda offers several symbols for one key, the first (Agda's default) is used.
+It also installs the **Open Lean Shortcuts** Quick Action (the cheat sheet, for either table).
+Re-run it to refresh the cheat sheet.
 
 Preferences are backed up to `~/Library/Application Support/LeanSymbolsInput/` first. To undo:
 `defaults import com.mathsymbolsinput.inputmethod.MathSymbolsInput <backup.plist>`.
 
 `abbreviations.json` is from [leanprover/vscode-lean4](https://github.com/leanprover/vscode-lean4)
-(Apache License 2.0).
+(Apache License 2.0). `abbreviations-agda.json` is flattened from the `keymap.js` in
+[banacorn/agda-mode-vscode](https://github.com/banacorn/agda-mode-vscode) (MIT), itself generated
+from Agda's Emacs `agda-input.el`.
 
 [pkg]: https://github.com/knrafto/MathSymbolsInput/releases/latest/download/MathSymbolsInput.pkg

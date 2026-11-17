@@ -1,16 +1,32 @@
 #!/usr/bin/env bash
-# Add every Lean 4 abbreviation to Math Symbols Input as a custom command, and
-# bind Ctrl+Option+Cmd+L to a searchable shortcut viewer.
+# Add every Lean 4 (or Agda) abbreviation to Math Symbols Input as a custom
+# command, and bind Ctrl+Option+Cmd+L to a searchable shortcut viewer.
 #
-#   ./install.sh            use the bundled abbreviations.json
-#   ./install.sh --update   fetch the latest table from vscode-lean4 first
+#   ./install.sh            Lean 4: use the bundled abbreviations.json
+#   ./install.sh --agda     Agda: use the bundled abbreviations-agda.json
+#   --update                fetch the latest table first (vscode-lean4 / agda-mode-vscode)
+#
+# Switching between Lean and Agda removes the other table's commands; custom
+# commands you added yourself are kept.
 set -euo pipefail
+
+LANG_NAME=Lean
+UPDATE=
+for arg in "$@"; do
+  case "$arg" in
+    --agda) LANG_NAME=Agda ;;
+    --lean) LANG_NAME=Lean ;;
+    --update) UPDATE=1 ;;
+    *) echo "usage: $0 [--agda] [--update]" >&2; exit 2 ;;
+  esac
+done
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 DOMAIN=com.mathsymbolsinput.inputmethod.MathSymbolsInput
 IM_APP="/Library/Input Methods/Math Symbols Input.app"
 PKG_URL=https://github.com/knrafto/MathSymbolsInput/releases/latest/download/MathSymbolsInput.pkg
-ABBREV_URL=https://raw.githubusercontent.com/leanprover/vscode-lean4/master/lean4-unicode-input/src/abbreviations.json
+LEAN_URL=https://raw.githubusercontent.com/leanprover/vscode-lean4/master/lean4-unicode-input/src/abbreviations.json
+AGDA_URL=https://raw.githubusercontent.com/banacorn/agda-mode-vscode/master/asset/keymap.js
 SUPPORT="$HOME/Library/Application Support/LeanSymbolsInput"
 SERVICE_NAME="Open Lean Shortcuts"
 HOTKEY='^~@l'   # ^ Ctrl, ~ Option, @ Cmd
@@ -23,19 +39,30 @@ if [ ! -d "$IM_APP" ]; then
   exit 1
 fi
 
-ABBREV="$HERE/abbreviations.json"
 mkdir -p "$SUPPORT"
+if [ "$LANG_NAME" = Agda ]; then
+  ABBREV="$HERE/abbreviations-agda.json"; URL="$AGDA_URL"; FETCHED="$SUPPORT/agda-keymap.js"
+else
+  ABBREV="$HERE/abbreviations.json"; URL="$LEAN_URL"; FETCHED="$SUPPORT/abbreviations.json"
+fi
 
-# 2. Lean abbreviations -> CustomCommands (+ backup), and the viewer page
-if [ "${1:-}" = "--update" ]; then
-  echo "==> Fetching latest Lean abbreviations"
-  curl -fsSL -o "$SUPPORT/abbreviations.json" "$ABBREV_URL"
-  ABBREV="$SUPPORT/abbreviations.json"
+# 2. Abbreviations -> CustomCommands (+ backup), and the viewer page
+if [ -n "$UPDATE" ]; then
+  echo "==> Fetching latest $LANG_NAME abbreviations"
+  curl -fsSL -o "$FETCHED" "$URL"
+  ABBREV="$FETCHED"
 fi
 backup="$SUPPORT/prefs-backup-$(date +%Y%m%d-%H%M%S).plist"
 defaults export "$DOMAIN" "$backup" 2>/dev/null && echo "==> Backed up preferences to $backup" || true
-echo "==> Installing Lean commands"
-/usr/bin/python3 -I "$HERE/build.py" "$ABBREV" "$HERE/viewer.html" "$SUPPORT/shortcuts.html"
+# Every table we may have installed before, so its commands can be cleared out.
+REPLACE=()
+for t in "$HERE/abbreviations.json" "$HERE/abbreviations-agda.json" \
+         "$SUPPORT/abbreviations.json" "$SUPPORT/agda-keymap.js"; do
+  [ -f "$t" ] && REPLACE+=(--replace "$t")
+done
+echo "==> Installing $LANG_NAME commands"
+/usr/bin/python3 -I "$HERE/build.py" --title "$LANG_NAME" "${REPLACE[@]}" \
+  "$ABBREV" "$HERE/viewer.html" "$SUPPORT/shortcuts.html"
 
 # 3. Quick Action + hotkey
 echo "==> Installing \"$SERVICE_NAME\" Quick Action on Ctrl+Option+Cmd+L"
