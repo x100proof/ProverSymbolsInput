@@ -62,7 +62,7 @@
 					<string>PAGE="$HOME/Library/Application Support/LeanSymbolsInput/shortcuts.html"
 URL="file://$(printf %s "$PAGE" | sed 's/ /%20/g')"
 if [ -d "/Applications/Google Chrome.app" ]; then
-  read X Y WD HT &lt; &lt;(osascript -l JavaScript -e 'ObjC.import("AppKit"); const s=$.NSScreen.mainScreen, f=s.frame, v=s.visibleFrame; [v.origin.x, f.size.height-(v.origin.y+v.size.height), v.size.width, v.size.height].map(Math.round).join(" ")')
+  read X Y WD HT &lt; &lt;(osascript -l JavaScript -e 'ObjC.import("AppKit"); const s=$.NSScreen.mainScreen, f=s.frame, v=s.visibleFrame, vw=v.size.width, vh=v.size.height, w=Math.min(vw, Math.max(1000, Math.min(1400, vw*0.7))), h=Math.min(vh, Math.max(640, Math.min(1000, vh*0.8))); [v.origin.x+(vw-w)/2, f.size.height-(v.origin.y+vh)+(vh-h)/2, w, h].map(Math.round).join(" ")')
   open -na "Google Chrome" --args --app="$URL" --window-position=$X,$Y --window-size=$WD,$HT
 else
   open "$PAGE"
