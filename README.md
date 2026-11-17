@@ -3,6 +3,11 @@
 Type [Lean 4](https://lean-lang.org) unicode abbreviations (`\to` → `→`, `\R` → `ℝ`, `\<>` → `⟨⟩`)
 in any macOS app, with a searchable cheat sheet on **⌃⌥⌘L**.
 
+This repo works in conjunction with
+[Math Symbols Input](https://github.com/knrafto/MathSymbolsInput), a macOS input method that turns
+`\commands` into unicode characters in whichever app has keyboard focus. Math Symbols Input does
+the typing; this repo loads Lean's abbreviation table into it and adds the cheat sheet.
+
 ![The searchable Lean shortcuts cheat sheet](cheatsheet.png)
 
 ## Install
