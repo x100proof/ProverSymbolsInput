@@ -2,7 +2,7 @@
 
 Type [Lean 4](https://lean-lang.org) or [Agda](https://agda.readthedocs.io) unicode
 abbreviations in any macOS app (`\to` → `→`, `\all` → `∀`, `\==` → `≡`), with a searchable
-cheat sheet one keystroke away on **⌃⌥⌘L**.
+cheat sheet one keystroke away (**⌃⌥⌘L** by default, and you can change it).
 
 ![The searchable shortcuts cheat sheet](cheatsheet.png)
 
@@ -13,8 +13,8 @@ turns `\commands` into unicode characters in whichever app has keyboard focus. I
 This repo:
 
 - loads the full Lean 4 or Agda abbreviation table into Math Symbols Input as custom commands, and
-- adds an **Open Symbol Shortcuts** Quick Action on ⌃⌥⌘L that opens a searchable cheat sheet of
-  every command. Search by abbreviation (`to`, `\bN`) or paste a symbol to find how to type it.
+- adds an **Open Symbol Shortcuts** Quick Action on ⌃⌥⌘L (or your own shortcut) that opens a
+  searchable cheat sheet of every command. Search by abbreviation (`to`, `\bN`) or paste a symbol to find how to type it.
 
 You use one proof assistant's table at a time. The two mostly agree, but not everywhere:
 
@@ -38,17 +38,42 @@ You use one proof assistant's table at a time. The two mostly agree, but not eve
    ./install.sh --agda     # Agda
    ```
 
-3. Press **⌃⌥⌘L** to open the cheat sheet. If nothing happens, check that **Open Symbol
-   Shortcuts** is ticked under System Settings → Keyboard → Keyboard Shortcuts → Services →
-   General.
+3. Press **⌃⌥⌘L** (or your `--shortcut`) to open the cheat sheet. If nothing happens, check that
+   **Open Symbol Shortcuts** is ticked under System Settings → Keyboard → Keyboard Shortcuts →
+   Services → General.
 
 ### Options
 
-| Flag       | Effect                                                                     |
-|------------|----------------------------------------------------------------------------|
-| `--lean4`  | Install the Lean 4 table (the default).                                    |
-| `--agda`   | Install the Agda table.                                                    |
-| `--update` | Download the latest table first instead of using the copy in this repo.   |
+| Flag              | Effect                                                                 |
+|-------------------|------------------------------------------------------------------------|
+| `--lean4`         | Install the Lean 4 table (the default).                                |
+| `--agda`          | Install the Agda table.                                                |
+| `--update`        | Download the latest table first instead of using the copy in this repo. |
+| `--shortcut KEYS` | Set the shortcut that opens the cheat sheet (default `Ctrl+Option+Cmd+L`). |
+
+### Choosing the shortcut
+
+```sh
+./install.sh --shortcut "Cmd+Ctrl+Shift+L"
+```
+
+`KEYS` is one or more modifiers and a single key joined by `+`, in any order and any case, the
+same style as VS Code keybindings and Electron accelerators. So `cmd+shift+l`,
+`Command+Shift+L` and `⌘+⇧+L` all mean the same shortcut.
+
+| Modifier | Accepted names                                          |
+|----------|---------------------------------------------------------|
+| ⌘        | `Cmd`, `Command`, `Meta`, `Super`, `CmdOrCtrl`, `⌘`     |
+| ⌃        | `Ctrl`, `Control`, `⌃`                                  |
+| ⌥        | `Opt`, `Option`, `Alt`, `⌥`                             |
+| ⇧        | `Shift`, `⇧`                                            |
+
+The key is a letter, a digit, or one of `` ` - = [ ] \ ; ' , . / ``. At least one of Cmd, Ctrl or
+Option is needed. Function keys, Space and arrow keys are not supported. Pick a combination that
+no app you use already claims, or that app's shortcut wins while it is focused.
+
+The installer remembers your shortcut, so later runs (switching to Agda, `--update`) keep it.
+Pass `--shortcut "Ctrl+Option+Cmd+L"` to go back to the default.
 
 ### Switching and re-running
 

@@ -1,25 +1,71 @@
 #!/usr/bin/env bash
 # Add every Lean 4 (or Agda) abbreviation to Math Symbols Input as a custom
-# command, and bind Ctrl+Option+Cmd+L to a searchable shortcut viewer.
+# command, and bind a keyboard shortcut (default Ctrl+Option+Cmd+L) to a
+# searchable shortcut viewer.
 #
-#   ./install.sh            Lean 4 (the default): use the bundled abbreviations.json
-#   ./install.sh --lean4    the same, explicitly
-#   ./install.sh --agda     Agda: use the bundled abbreviations-agda.json
-#   --update                fetch the latest table first (vscode-lean4 / agda-mode-vscode)
+#   ./install.sh                 Lean 4 (the default): use the bundled abbreviations.json
+#   ./install.sh --lean4         the same, explicitly
+#   ./install.sh --agda          Agda: use the bundled abbreviations-agda.json
+#   --update                     fetch the latest table first (vscode-lean4 / agda-mode-vscode)
+#   --shortcut "Cmd+Shift+L"     key that opens the viewer; remembered for later runs
+#
+# Shortcut vocabulary (as in VS Code keybindings and Electron accelerators):
+# modifiers and one key joined by "+", any order, any case.
+#   Cmd | Command | Meta | Super | CmdOrCtrl | ⌘     Ctrl | Control | ⌃
+#   Opt | Option | Alt | ⌥                          Shift | ⇧
+#   Key: a letter, digit, or one of  ` - = [ ] \ ; ' , . /
+#   At least one of Cmd, Ctrl or Option is required.
 #
 # Switching between Lean and Agda removes the other table's commands; custom
 # commands you added yourself are kept.
 set -euo pipefail
 
+USAGE="usage: $0 [--lean4 | --agda] [--update] [--shortcut \"Ctrl+Option+Cmd+L\"]"
+DEFAULT_SHORTCUT="Ctrl+Option+Cmd+L"
+
+# parse_shortcut "Cmd+Ctrl+Shift+L" sets HOTKEY (macOS key-equivalent string,
+# e.g. "^$@l") and HOTKEY_LABEL (e.g. "⌃⇧⌘L"), or fails with a message.
+parse_shortcut() {
+  local spec="$1" part lower ctrl= opt= shift= cmd= key= rest
+  rest="$spec+"
+  while [ -n "$rest" ]; do
+    part="${rest%%+*}"; rest="${rest#*+}"
+    part="$(printf %s "$part" | tr -d '[:space:]')"
+    [ -n "$part" ] || { echo "Shortcut \"$spec\": empty part (use e.g. \"Cmd+Shift+L\")" >&2; return 1; }
+    lower="$(printf %s "$part" | tr '[:upper:]' '[:lower:]')"
+    case "$lower" in
+      cmd|command|meta|super|cmdorctrl|commandorcontrol|⌘) cmd=1 ;;
+      ctrl|control|⌃) ctrl=1 ;;
+      opt|option|alt|⌥) opt=1 ;;
+      shift|⇧) shift=1 ;;
+      *)
+        [ -z "$key" ] || { echo "Shortcut \"$spec\": more than one key (\"$key\" and \"$part\")" >&2; return 1; }
+        case "$lower" in
+          [a-z0-9]|'`'|-|=|'['|']'|'\'|';'|"'"|,|.|/) key="$lower" ;;
+          *) echo "Shortcut \"$spec\": unknown key or modifier \"$part\"" >&2; return 1 ;;
+        esac ;;
+    esac
+  done
+  [ -n "$key" ] || { echo "Shortcut \"$spec\": no key given" >&2; return 1; }
+  [ -n "$cmd$ctrl$opt" ] || { echo "Shortcut \"$spec\": needs Cmd, Ctrl or Option" >&2; return 1; }
+  HOTKEY="${ctrl:+^}${opt:+~}${shift:+\$}${cmd:+@}$key"
+  HOTKEY_LABEL="${ctrl:+⌃}${opt:+⌥}${shift:+⇧}${cmd:+⌘}$(printf %s "$key" | tr '[:lower:]' '[:upper:]')"
+}
+
 LANG_NAME=Lean
 UPDATE=
-for arg in "$@"; do
-  case "$arg" in
+SHORTCUT=
+while [ $# -gt 0 ]; do
+  case "$1" in
     --agda) LANG_NAME=Agda ;;
     --lean4|--lean) LANG_NAME=Lean ;;
     --update) UPDATE=1 ;;
-    *) echo "usage: $0 [--lean4 | --agda] [--update]" >&2; exit 2 ;;
+    --shortcut=*) SHORTCUT="${1#--shortcut=}" ;;
+    --shortcut) [ $# -ge 2 ] || { echo "$USAGE" >&2; exit 2; }; SHORTCUT="$2"; shift ;;
+    -h|--help) echo "$USAGE"; exit 0 ;;
+    *) echo "$USAGE" >&2; exit 2 ;;
   esac
+  shift
 done
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -32,7 +78,7 @@ SUPPORT="$HOME/Library/Application Support/ProverSymbolsInput"
 SERVICE_NAME="Open Symbol Shortcuts"
 OLD_SUPPORT="$HOME/Library/Application Support/LeanSymbolsInput"   # before the rename
 OLD_SERVICE_NAME="Open Lean Shortcuts"
-HOTKEY='^~@l'   # ^ Ctrl, ~ Option, @ Cmd
+SHORTCUT_FILE="$SUPPORT/shortcut"   # the last --shortcut given, reused by later runs
 
 # 1. Input method must already be installed
 if [ ! -d "$IM_APP" ]; then
@@ -47,6 +93,14 @@ if [ -d "$OLD_SUPPORT" ] && [ ! -e "$SUPPORT" ]; then
   mv "$OLD_SUPPORT" "$SUPPORT" && echo "==> Moved $OLD_SUPPORT to $SUPPORT"
 fi
 mkdir -p "$SUPPORT"
+
+# Shortcut: --shortcut, else the one saved by an earlier run, else the default.
+if [ -z "$SHORTCUT" ] && [ -s "$SHORTCUT_FILE" ]; then
+  SHORTCUT="$(cat "$SHORTCUT_FILE")"
+fi
+parse_shortcut "${SHORTCUT:-$DEFAULT_SHORTCUT}" || exit 2
+printf '%s\n' "${SHORTCUT:-$DEFAULT_SHORTCUT}" > "$SHORTCUT_FILE"
+
 if [ "$LANG_NAME" = Agda ]; then
   ABBREV="$HERE/abbreviations-agda.json"; URL="$AGDA_URL"; FETCHED="$SUPPORT/agda-keymap.js"
 else
@@ -72,7 +126,7 @@ echo "==> Installing $LANG_NAME commands"
   "$ABBREV" "$HERE/viewer.html" "$SUPPORT/shortcuts.html"
 
 # 3. Quick Action + hotkey
-echo "==> Installing \"$SERVICE_NAME\" Quick Action on Ctrl+Option+Cmd+L"
+echo "==> Installing \"$SERVICE_NAME\" Quick Action on $HOTKEY_LABEL"
 mkdir -p "$HOME/Library/Services"
 if [ -d "$HOME/Library/Services/$OLD_SERVICE_NAME.workflow" ]; then
   echo "==> Removing old \"$OLD_SERVICE_NAME\" Quick Action"
@@ -95,5 +149,5 @@ pkill -f "Math Symbols Input.app/Contents/MacOS" 2>/dev/null || true
 
 echo
 echo "Done."
-echo "If Ctrl+Option+Cmd+L does nothing, check System Settings > Keyboard >"
+echo "If $HOTKEY_LABEL does nothing, check System Settings > Keyboard >"
 echo "Keyboard Shortcuts > Services > General > \"$SERVICE_NAME\"."
